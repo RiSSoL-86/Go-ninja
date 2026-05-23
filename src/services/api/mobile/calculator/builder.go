@@ -7,8 +7,8 @@ import (
 func BuildCalculator() *Handler {
 	repository := NewMemoryRepository()
 
-	calculateServices := services.NewCalculateService(repository)
-	historyServices := services.NewHistoryService(repository)
+	calculateService := services.NewCalculateService(repository)
+	historyService := services.NewHistoryService(repository)
 
-	return NewHandler(calculateServices, historyServices)
+	return NewHandler(calculateService, historyService)
 }
