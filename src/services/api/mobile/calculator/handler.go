@@ -1,10 +1,11 @@
 package calculator
 
 import (
-	"app/src/services/api/common/handler"
 	calcModels "app/src/services/api/mobile/calculator/models"
-	"encoding/json"
-	"net/http"
+	"context"
+	"log"
+
+	"github.com/danielgtaylor/huma/v2"
 )
 
 type ICalculateService interface {
@@ -12,7 +13,7 @@ type ICalculateService interface {
 }
 
 type IHistoryService interface {
-	GetHistory() ([]calcModels.CalculateRequest, error)
+	GetHistory() ([]calcModels.HistoryItem, error)
 }
 
 type Handler struct {
@@ -27,27 +28,21 @@ func NewHandler(calculateService ICalculateService, historyService IHistoryServi
 	}
 }
 
-func (h *Handler) Calculate(w http.ResponseWriter, r *http.Request) {
-	var req calcModels.CalculateRequest
-	_ = json.NewDecoder(r.Body).Decode(&req)
-
-	res, err := h.calculateService.Execute(req)
+func (h *Handler) Calculate(_ context.Context, input *calcModels.CalculateInput) (*calcModels.CalculateOutput, error) {
+	res, err := h.calculateService.Execute(input.Body)
 	if err != nil {
-		handler.Response(w, calcModels.CalculateResponse{
-			Error: err.Error(),
-		}, http.StatusUnprocessableEntity)
-		return
+		log.Printf("Calculate error: %v", err)
+		return nil, huma.Error500InternalServerError("failed to calculate result")
 	}
 
-	handler.Response(w, res, http.StatusOK)
+	return &calcModels.CalculateOutput{Body: res}, nil
 }
 
-func (h *Handler) History(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) History(_ context.Context, _ *struct{}) (*calcModels.HistoryOutput, error) {
 	res, err := h.historyService.GetHistory()
 	if err != nil {
-		handler.Response(w, map[string]string{"error": err.Error()}, http.StatusInternalServerError)
-		return
+		return nil, huma.Error500InternalServerError("failed to get calculation history")
 	}
 
-	handler.Response(w, res, http.StatusOK)
+	return &calcModels.HistoryOutput{Body: res}, nil
 }

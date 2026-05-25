@@ -2,13 +2,10 @@ package mobile
 
 import (
 	"app/src/services/api/mobile/calculator"
-	"net/http"
+
+	"github.com/danielgtaylor/huma/v2"
 )
 
-func InitMobile(mux *http.ServeMux) {
-	calculatorMux := http.NewServeMux()
-
-	calculator.InitCalculator(calculatorMux)
-
-	mux.Handle("/mobile/", http.StripPrefix("/mobile", calculatorMux))
+func InitMobile(api huma.API, dependencies *Dependencies) {
+	calculator.InitCalculator(api, dependencies.Calculator)
 }

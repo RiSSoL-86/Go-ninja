@@ -1,11 +1,12 @@
 package services
 
 import (
+	"app/src/core/models/calculator"
 	"app/src/services/api/mobile/calculator/models"
 )
 
 type IHistoryRepository interface {
-	GetHistory() ([]models.CalculateRequest, error)
+	GetHistory() ([]calculator.CalculationRecord, error)
 }
 
 type HistoryService struct {
@@ -16,7 +17,23 @@ func NewHistoryService(repository IHistoryRepository) *HistoryService {
 	return &HistoryService{repository: repository}
 }
 
-func (s *HistoryService) GetHistory() ([]models.CalculateRequest, error) {
-	// В будущем здесь может быть какая-то логика фильтрации или обработки
-	return s.repository.GetHistory()
+func (s *HistoryService) GetHistory() ([]models.HistoryItem, error) {
+	records, err := s.repository.GetHistory()
+	if err != nil {
+		return nil, err
+	}
+
+	history := make([]models.HistoryItem, 0, len(records))
+	for _, record := range records {
+		history = append(history, models.HistoryItem{
+			ID:        record.ID,
+			Args:      append([]float64(nil), record.Args...),
+			Operator:  record.Operator,
+			Result:    record.Result,
+			Note:      record.Note,
+			CreatedAt: record.CreatedAt,
+		})
+	}
+
+	return history, nil
 }

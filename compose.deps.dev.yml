@@ -8,9 +8,9 @@ services:
       - POSTGRES_USER
       - POSTGRES_PASSWORD
     volumes:
-      - db_data:/var/lib/postgresql/data
+      - db_go_data:/var/lib/postgresql/data
     healthcheck:
-      test: [ "CMD", "pg_isready", "-q", "-d", "db1", "-U", "postgres" ]
+      test: [ "CMD", "pg_isready", "-q", "-d", "db-go", "-U", "postgres" ]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -22,5 +22,5 @@ services:
         max-size: "500m"
 
 volumes:
-  db_data:
+  db_go_data:
     external: true

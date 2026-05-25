@@ -1,12 +1,15 @@
 package services
 
 import (
+	"app/src/core/models/calculator"
 	"app/src/services/api/mobile/calculator/models"
 	"errors"
+
+	"github.com/lib/pq"
 )
 
 type ICalculateRepository interface {
-	SaveCalculation(req models.CalculateRequest, res models.CalculateResponse) error
+	SaveCalculation(record *calculator.CalculationRecord) error
 }
 
 type CalculateService struct {
@@ -50,9 +53,18 @@ func (s *CalculateService) Execute(req models.CalculateRequest) (models.Calculat
 		return models.CalculateResponse{}, errors.New("unsupported operator")
 	}
 
-	res := models.CalculateResponse{Result: result}
+	record := &calculator.CalculationRecord{
+		Args:     pq.Float64Array(req.Args),
+		Operator: req.Operator,
+		Result:   result,
+		Note:     "Calculated via API",
+	}
+	if err := s.repository.SaveCalculation(record); err != nil {
+		return models.CalculateResponse{}, err
+	}
 
-	_ = s.repository.SaveCalculation(req, res)
-
-	return res, nil
+	return models.CalculateResponse{
+		ID:     record.ID,
+		Result: result,
+	}, nil
 }
